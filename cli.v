@@ -66,7 +66,7 @@ pub fn (p Program) help() string {
 
 	if p.arguments.len != 0 {
 		for arg in p.arguments {
-			out += ' <${arg}>'
+			out += ' <${arg.name}>'
 		}
 	}
 
