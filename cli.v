@@ -36,8 +36,8 @@ fn Type.from_str(str string) !Type {
 
 pub struct Argument {
 pub:
-	name string
-	typ  Type
+	name  string
+	@type Type
 }
 
 pub struct ProgramOption {
@@ -85,7 +85,7 @@ pub fn (p Program) help() string {
 }
 
 pub fn (p Program) parse() ParsedProgram {
-	mut parsed_pos_args := []?Input{}
+	mut parsed_pos_args := []Input{}
 	mut parsed_opts := map[string]Input{}
 	mut long_options := map[string]Input{}
 	mut short_options := map[string]Input{}
@@ -110,7 +110,10 @@ pub fn (p Program) parse() ParsedProgram {
 				short_options[key] = value
 			}
 		} else {
-			parsed_pos_args << parse_input_type(e, p.arguments[j].typ)
+			if j >= p.arguments.len {
+				continue
+			}
+			parsed_pos_args << parse_input_type(e, p.arguments[j].@type) or { Input(0) }
 			j++
 		}
 	}
@@ -119,11 +122,6 @@ pub fn (p Program) parse() ParsedProgram {
 		parsed_opts[opt.long_key] = parse_input_type(long_options[opt.long_key] or {
 			short_options[opt.short_key] or { opt.default_value }
 		}, Type.from_str(opt.default_value.type_name()) or { Type.string }) or { opt.default_value }
-	}
-
-	for j < p.arguments.len {
-		parsed_pos_args << ?Input(none)
-		j++
 	}
 
 	return ParsedProgram{
@@ -173,7 +171,7 @@ fn parse_input_type(inp Input, typ Type) ?Input {
 
 type Input = bool | f64 | i64 | int | string
 type ParsedProgramOption = map[string]Input
-type ParsedProgramPositional = []?Input
+type ParsedProgramPositional = []Input
 
 pub struct ParsedProgram {
 	options ParsedProgramOption
